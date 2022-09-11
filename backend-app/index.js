@@ -1,16 +1,36 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const dotenv = require("dotenv");
+const bodyParser = require("body-parser");
 const app = express();
-const port = 5000;
-const knexConfig = require('./db/knexfile');
-const knex = require('knex')(knexConfig[process.env.NODE_ENV])
+const { knex } = require("./db/db_config");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger.json");
 
-app.use(bodyParser.json());
+dotenv.config({ path: "./.env" });
+const port = process.env.PORT;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+// Require product routes
+const productRoutes = require("./routes/ProductRoute");
+
+app.use(
+  bodyParser.json({
+    limit: "8mb",
+  })
+);
+
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`app listening at http://localhost:${port}`);
+  console.log(`app env = ` + process.env.NODE_ENV);
 });
+
+// using as middleware
+app.use("/product", productRoutes);
+
+//swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
